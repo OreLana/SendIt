@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
+import re
 
 app = Flask(__name__)
+
 
 users = [
     {
@@ -51,20 +53,25 @@ parcels = [
 
 @app.route('/sendit/api/v1/signup', methods = ['POST'])
 def createUser():
+    post_data = request.get_json()
     user = {
         "user_id" : users[-1]['user_id'] + 1,
-        "full_name" : request.get_json(["fullname"]),
-        "user_name" : request.get_json(['username']),
-        "email" : request.get_json(["email"]),
-        "password" : request.get_json(["password"])
+        "full_name" : post_data.get("fullname"),
+        "user_name" : post_data.get('username'),
+        "email" : post_data.get("email"),
+        "password" : post_data.get("password")
     }
-    if str(user["full_name"]).isalnum() == True:
-        return "Your full name should contain only letters", 401
-    
-    users.append(user)
-    return jsonify({"user":user}), 201
+    if user['full_name'] == "" or user['password'] == "":
+        abort(400) 
+    if ((user["full_name"]).replace(" ","")).isalpha() == False:
+        abort(400)
+    else:    
+        users.append(user)
+        return jsonify(users)
 
-@app.route('/sendit/api/v1/parcel', methods = ['POST'])
+
+
+'''@app.route('/sendit/api/v1/parcel', methods = ['POST'])
 def createParcel():
     user = {
         "parecl_id" : users[-1]['parcel_id'] + 1,
@@ -75,7 +82,7 @@ def createParcel():
     }
     users.append(user)
     return jsonify({"user":user}), 201
-
+'''
 
 
 if __name__ == '__main__':
